@@ -1,0 +1,32 @@
+{
+  "name": "statto-backend",
+  "description": "An abstract statto-backend which provides common tests.",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "homepage": "https://github.com/tynio/statto-backend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tynio/statto-backend"
+  },
+  "bugs": {
+    "url": "https://github.com/tynio/statto-backend/issues"
+  },
+  "author": {
+    "name": "Andrew Chilton",
+    "email": "andychilton@gmail.com",
+    "url": "http://chilts.org/"
+  },
+  "license": "MIT",
+  "keywords": [
+    "statto",
+    "statsd",
+    "stats",
+    "statto-backend"
+  ]
+}
+
