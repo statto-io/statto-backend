@@ -90,6 +90,18 @@ function stattoBackendTest(backend, test) {
     })
   })
 
+
+  test('process stats for a datetime for which no raw stats exist', function(t) {
+    t.plan(2)
+
+    var ts = isoDate()
+
+    // process these stats and make sure
+    backend.process(ts, function(err, stats) {
+      t.ok(!err, 'There was no error processing empty raws')
+      t.ok(!stats, 'Since there were no raws, we get no stats back')
+    })
+  })
 }
 
 // --------------------------------------------------------------------------------------------------------------------

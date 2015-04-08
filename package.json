@@ -6,7 +6,9 @@
   "scripts": {
     "test": "npm test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "statto-process": "^0.1.0"
+  },
   "devDependencies": {},
   "homepage": "https://github.com/tynio/statto-backend",
   "repository": {
@@ -29,4 +31,3 @@
     "statto-backend"
   ]
 }
-
