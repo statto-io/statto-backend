@@ -92,6 +92,12 @@ StattoBackendAbstract.prototype.process = function process(date, callback) {
   })
 }
 
+StattoBackendAbstract.prototype.createStatsReadStream = function createStatsReadStream(from, to, callback) {
+  // * from - greater than or equal to (always included)
+  // * to - less than (therefore never included)
+  throw new Error("This function should be overriden : StattoBackendAbstract.createStatsReadStream()")
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 module.exports.StattoBackendAbstract = StattoBackendAbstract
