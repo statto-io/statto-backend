@@ -98,6 +98,31 @@ StattoBackendAbstract.prototype.createStatsReadStream = function createStatsRead
   throw new Error("This function should be overriden : StattoBackendAbstract.createStatsReadStream()")
 }
 
+StattoBackendAbstract.prototype.getCounter = function getCounter(name, from, to, callback) {
+  var self = this
+
+  // just grab each complete set of stats and extract what we need
+  var periods = []
+
+  self.createStatsReadStream(from, to)
+    .on('data', function(stats) {
+      if ( stats.counters[name] ) {
+        periods.push({
+          ts : stats.ts,
+          v  : stats.counters[name],
+        })
+      }
+      // else, don't add this to the array
+    })
+    .on('error', function (err) {
+      callback(err)
+    })
+    .on('end', function () {
+      callback(null, periods)
+    })
+  ;
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 module.exports.StattoBackendAbstract = StattoBackendAbstract

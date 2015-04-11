@@ -6,7 +6,8 @@
 //
 // --------------------------------------------------------------------------------------------------------------------
 
-// no requires
+// npm
+var async = require('async')
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -162,6 +163,39 @@ function stattoBackendTest(backend, test) {
           })
       })
     })
+  })
+
+  test('add a few stats get a counter range of values back out', function(t) {
+    t.plan(2)
+
+    // Make this in the past so we don't accidentally add some new ones in between
+    // (no matter how unlikely).
+    var ts1 = '2010-01-09T12:27:00.000Z'
+    var ts2 = '2010-01-09T12:27:15.000Z'
+    var ts3 = '2010-01-09T12:27:30.000Z'
+    var stats1 = { counters : { reqs : 3 }, ts : ts1, info : { 'id' : 'one'   } }
+    var stats2 = { counters : { reqs : 5 }, ts : ts2, info : { 'id' : 'two'   } }
+    var stats3 = { counters : { reqs : 8 }, ts : ts3, info : { 'id' : 'three' } }
+
+    async.each(
+      [ stats1, stats2, stats3 ],
+      function(stats, done) {
+        backend.setStats(stats, done)
+      },
+      function(err) {
+        t.ok(!err, 'There was no error when adding all these stats')
+
+        // now, let's pull the stats back out again
+        var expected = [
+          { ts : '2010-01-09T12:27:00.000Z', v : 3 },
+          { ts : '2010-01-09T12:27:15.000Z', v : 5 },
+          { ts : '2010-01-09T12:27:30.000Z', v : 8 },
+        ]
+        backend.getCounter('reqs', ts1, '2010-01-09T12:27:45.000Z', function(err, range) {
+          t.deepEqual(range, expected, 'The counter values are what we expect back')
+        })
+      }
+    )
   })
 
 }
