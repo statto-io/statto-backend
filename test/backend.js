@@ -319,6 +319,42 @@ function stattoBackendTest(backend, test) {
     )
   })
 
+  test('add a few stats get a set of values back out', function(t) {
+    t.plan(2)
+
+    // Make this in the past so we don't accidentally add some new ones in between
+    // (no matter how unlikely).
+    var ts1 = '2007-11-19T13:17:00.000Z'
+    var ts2 = '2007-11-19T13:17:15.000Z'
+    var ts3 = '2007-11-19T13:17:30.000Z'
+    var ts4 = '2007-11-19T13:17:45.000Z'
+    var stats1 = { sets : { color : { red   : 3 } }, ts : ts1, info : { 'id' : 'one'   } }
+    var stats2 = { sets : { color : { green : 5 } }, ts : ts2, info : { 'id' : 'two'   } }
+    var stats3 = { sets : { color : { blue  : 8 } }, ts : ts3, info : { 'id' : 'three' } }
+    var stats4 = { sets : { color : { blah  : 0 } }, ts : ts4, info : { 'id' : 'four'  } }
+
+    async.each(
+      [ stats1, stats2, stats3, stats4 ],
+      function(stats, done) {
+        backend.setStats(stats, done)
+      },
+      function(err) {
+        t.ok(!err, 'There was no error when adding all these stats')
+
+        // now, let's pull the stats back out again
+        var expected = [
+          { ts : ts1, v : { red   : 3 } },
+          { ts : ts2, v : { green : 5 } },
+          { ts : ts3, v : { blue  : 8 } },
+          // does not include ts4
+        ]
+        backend.getSet('color', ts1, ts4, function(err, range) {
+          t.deepEqual(range, expected, 'The set values are what we expect back')
+        })
+      }
+    )
+  })
+
 }
 
 // --------------------------------------------------------------------------------------------------------------------
