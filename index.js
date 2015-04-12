@@ -123,6 +123,31 @@ StattoBackendAbstract.prototype.getCounter = function getCounter(name, from, to,
   ;
 }
 
+StattoBackendAbstract.prototype.getGauge = function getGauge(name, from, to, callback) {
+  var self = this
+
+  // just grab each complete set of stats and extract what we need
+  var periods = []
+
+  self.createStatsReadStream(from, to)
+    .on('data', function(stats) {
+      if ( stats.gauges[name] ) {
+        periods.push({
+          ts : stats.ts,
+          v  : stats.gauges[name],
+        })
+      }
+      // else, don't add this to the array
+    })
+    .on('error', function (err) {
+      callback(err)
+    })
+    .on('end', function () {
+      callback(null, periods)
+    })
+  ;
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 module.exports.StattoBackendAbstract = StattoBackendAbstract
