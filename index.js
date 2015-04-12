@@ -12,6 +12,7 @@ var events = require('events')
 var crypto = require('crypto')
 
 // npm
+var stattoMerge = require('statto-merge')
 var stattoProcess = require('statto-process')
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -64,7 +65,7 @@ StattoBackendAbstract.prototype.getStats = function getStats(date, callback) {
 }
 
 StattoBackendAbstract.prototype.process = function process(date, callback) {
-  // get all the rawStats, process them and set the stats
+  // get all the rawStats, merge them, process it and set the stats
   var self = this
   callback = callback || noop
 
@@ -85,10 +86,16 @@ StattoBackendAbstract.prototype.process = function process(date, callback) {
       return callback()
     }
 
+    // merge all of these raws down to one raw
+    var info = {
+      length : raws.length,
+      ts : (new Date()).toISOString(),
+    }
+    var mergedRaw = stattoMerge(info, raws)
+
     // loops through all the stats, process and save it
-    var stats = stattoProcess(raws)
+    var stats = stattoProcess(mergedRaw)
     self.setStats(stats, callback)
-    console.log('stats', stats)
   })
 }
 
@@ -135,6 +142,31 @@ StattoBackendAbstract.prototype.getGauge = function getGauge(name, from, to, cal
         periods.push({
           ts : stats.ts,
           v  : stats.gauges[name],
+        })
+      }
+      // else, don't add this to the array
+    })
+    .on('error', function (err) {
+      callback(err)
+    })
+    .on('end', function () {
+      callback(null, periods)
+    })
+  ;
+}
+
+StattoBackendAbstract.prototype.getTimer = function getTimer(name, from, to, callback) {
+  var self = this
+
+  // just grab each complete set of stats and extract what we need
+  var periods = []
+
+  self.createStatsReadStream(from, to)
+    .on('data', function(stats) {
+      if ( stats.timers[name] ) {
+        periods.push({
+          ts : stats.ts,
+          v  : stats.timers[name],
         })
       }
       // else, don't add this to the array

@@ -234,6 +234,91 @@ function stattoBackendTest(backend, test) {
     )
   })
 
+  test('add a few raw stats, process and get a timer range', function(t) {
+    t.plan(3)
+
+    // Make this in the past so we don't accidentally add some new ones in between
+    // (no matter how unlikely).
+    var ts1 = '1998-09-30T03:42:00.000Z'
+    var ts2 = '1998-09-30T03:42:15.000Z'
+    var ts3 = '1998-09-30T03:42:30.000Z'
+    var ts4 = '1998-09-30T03:42:45.000Z'
+    var raw1a = { timers : { web :  [94, 89, 81, 92] }, ts : ts1, info : { 'id' : 'one-a' } }
+    var raw1b = { timers : { web :  [89, 89]         }, ts : ts1, info : { 'id' : 'one-b' } }
+    var raw2a = { timers : { web :  [90, 84, 101]    }, ts : ts2, info : { 'id' : 'two-a' } }
+    var raw2b = { timers : { web :  [91, 101]        }, ts : ts2, info : { 'id' : 'two-b' } }
+    var raw3  = { timers : { web :  [79, 84, 81, 92] }, ts : ts3, info : { 'id' : 'three' } }
+    var raw4  = { timers : { web :  [94]             }, ts : ts4, info : { 'id' : 'four'  } }
+
+    async.each(
+      [ raw1a, raw1b, raw2a, raw2b, raw3, raw4 ],
+      function(raw, done) {
+        // console.log('Adding raw ' + raw.ts + ' ' + JSON.stringify(raw.info))
+        backend.addRaw(raw, done)
+      },
+      function(err) {
+        t.ok(!err, 'There was no error when adding all these raw values')
+
+        async.eachSeries(
+          [ ts1, ts2, ts3, ts4 ],
+          function(date, done) {
+            // console.log('Processing date ' + date)
+            backend.process(date, done)
+          },
+          function(err) {
+            t.ok(!err, 'There was no error when processing these raws into stats')
+
+            // console.log('In here already')
+
+            // now, let's pull the stats back out again
+            var expected = [
+              {
+                ts : ts1,
+                v : {
+                  sum    : 534,
+                  count  : 6,
+                  min    : 81,
+                  max    : 94,
+                  mean   : 89,
+                  median : 89,
+                  std    : 4.041451884327381,
+                },
+              },
+              {
+                ts : ts2,
+                v : {
+                  sum    : 467,
+                  count  : 5,
+                  min    : 84,
+                  max    : 101,
+                  mean   : 93.4,
+                  median : 91,
+                  std    : 6.6513156593263565,
+                },
+              },
+              {
+                ts : ts3,
+                v : {
+                  sum    : 336,
+                  count  : 4,
+                  min    : 79,
+                  max    : 92,
+                  mean   : 84,
+                  median : 82.5,
+                  std    : 4.949747468305833,
+                },
+              },
+              // does not include ts4
+            ]
+            backend.getTimer('web', ts1, ts4, function(err, range) {
+              t.deepEqual(range, expected, 'The timer values are what we expect back')
+            })
+          }
+        )
+      }
+    )
+  })
+
 }
 
 // --------------------------------------------------------------------------------------------------------------------
