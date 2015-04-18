@@ -1,7 +1,7 @@
 {
   "name": "statto-backend",
   "description": "An abstract statto-backend which provides common tests.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "main": "index.js",
   "scripts": {
     "test": "tape test/*.js"
